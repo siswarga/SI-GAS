@@ -1,45 +1,252 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sistem Informasi</title>
-  <link rel="icon" href="https://drive.google.com/file/d/1ApbjlJnECGIPKrEc__rEUvB4hzQhKN-S/view?usp=sharing" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SI-GAS - Sistem Administrasi Warga Grand Assalam</title>
+
+  <!-- PENGAMANAN & KEAMANAN (CSP UNTUK GITHUB PAGES & GOOGLE APPS SCRIPT) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https: cdn.jsdelivr.net; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://script.google.com https://*.google.com https://*.googleapis.com; style-src 'self' https: 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com;">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- BOOTSTRAP 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FONT AWESOME ICONS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- GOOGLE FONTS (Inter) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- CHART.JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SWEETALERT2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #eee;
-      overflow: hidden; /* Mencegah scroll ganda */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
     }
-
-    .iframe-container {
-      width: 100%;
-      height: 100dvh; /* Menggunakan dvh agar pas di mobile browser */
-      overflow: hidden;
-    }
-
-    iframe {
-      display: block;
-      width: 100%;
-      height: 100%;
+    .card-custom {
       border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      background: #ffffff;
+      transition: transform 0.2s;
+    }
+    .btn-action-icon {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 10px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      text-decoration: none;
+      color: #333;
+      transition: all 0.2s;
+    }
+    .btn-action-icon:hover {
+      background: #e9ecef;
+      border-color: #198754;
+      color: #198754;
+    }
+    .btn-action-icon i {
+      font-size: 1.5rem;
+      margin-right: 12px;
     }
   </style>
 </head>
 <body>
-  <div class="iframe-container">
-    <iframe
-      id="app"
-      src="https://script.google.com/macros/s/AKfycbw-NyAhGZDH7-x64pgi01mKf7zzsm8ZJdETx8987uDUVXvYllS1VWsORCfS-eUwVxvNRw/exec"
-      scrolling="yes"
-      allowfullscreen="true"
-      webkitallowfullscreen="true"
-      mozallowfullscreen="true"
-      allow="fullscreen; camera; microphone; display-capture; geolocation;">
-    </iframe>
+
+  <!-- PORTAL PUBLIK (DASHBOARD WARGA) -->
+  <div id="public-page">
+    <div class="container py-3">
+      
+      <!-- BARIS 1: Header / Brand -->
+      <div class="row align-items-center mb-4 pb-3 border-bottom">
+        <div class="col-md-12 d-flex align-items-center justify-content-between">
+          <div class="app-brand-box d-flex align-items-center gap-3" ondblclick="triggerAdminLogin()" title="Klik 2x untuk masuk panel pengurus" style="cursor: pointer;">
+            <div id="pub-logo-container" class="bg-success text-white rounded-3 shadow-sm d-flex align-items-center justify-content-center overflow-hidden" style="width: 50px; height: 50px;">
+              <i class="fas fa-leaf fa-lg" id="pub-logo-icon"></i>
+            </div>
+            <div>
+              <h4 class="fw-bold mb-0 text-success" id="pub-app-name">SI-GAS</h4>
+              <small class="text-muted" id="pub-app-domisili"><i class="fas fa-map-marker-alt text-danger me-1"></i> Grand Assalam</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold d-none d-md-inline-block">
+              <i class="fas fa-shield-alt me-1"></i> Portal Warga Aktif
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BARIS 2: Sambutan & Demografi Penduduk -->
+      <div class="row g-4 mb-4">
+        <!-- Sisi Kiri: Sambutan -->
+        <div class="col-lg-5">
+          <div class="card card-custom p-4 bg-success text-white bg-gradient d-flex flex-column justify-content-between h-100">
+            <div>
+              <span class="badge bg-white text-success mb-3 px-3 py-1 rounded-pill fw-bold">Selamat Datang</span>
+              <h2 class="fw-bold mb-2">Assalamualaikum! 👋</h2>
+              <p class="opacity-9 mb-4">Portal transparansi, Iuran, Ronda, dan Administrasi Warga berbasis digital yang cepat, transparan, dan mudah diakses.</p>
+            </div>
+            <div class="p-3 bg-white bg-opacity-10 rounded-3 border border-white border-opacity-25">
+              <small class="d-block text-uppercase fw-bold tracking-wide opacity-75 mb-1"><i class="fas fa-quote-left me-1"></i> Motto Lingkungan</small>
+              <h6 class="mb-0 fw-bold fst-italic" id="pub-app-moto">"Harmonis, Religius, dan Gotong Royong"</h6>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Sisi Kanan: Demografi & Tombol Cepat -->
+        <div class="col-lg-7">
+          <div class="card card-custom p-4 h-100 d-flex flex-column justify-content-between">
+            
+            <div>
+              <h6 class="fw-bold text-muted mb-3"><i class="fas fa-users text-success me-2"></i>Demografi Penduduk & Keluarga</h6>
+              
+              <!-- 4 KOTAK UTAMA (JUMLAH KK, DOMISILI, NON DOMISILI, KONTRAK) -->
+              <div class="row g-2 mb-2 text-center">
+                <div class="col-6 col-md-3">
+                  <div class="p-2 bg-light rounded-3 h-100 d-flex flex-column justify-content-center">
+                    <small class="text-muted d-block fw-bold" style="font-size: 0.70rem;">JUMLAH KK</small>
+                    <h4 class="fw-bold text-success mb-0"><span id="pub-totKK">0</span> <span class="small font-normal text-muted">KK</span></h4>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="p-2 bg-light rounded-3 h-100 d-flex flex-column justify-content-center">
+                    <small class="text-muted d-block fw-bold" style="font-size: 0.70rem;">DOMISILI</small>
+                    <h4 class="fw-bold text-primary mb-0"><span id="pub-totDom">0</span> <span class="small font-normal text-muted">KK</span></h4>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="p-2 bg-light rounded-3 h-100 d-flex flex-column justify-content-center">
+                    <small class="text-muted d-block fw-bold" style="font-size: 0.70rem;">NON DOMISILI</small>
+                    <h4 class="fw-bold text-danger mb-0"><span id="pub-totND">0</span> <span class="small font-normal text-muted">KK</span></h4>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="p-2 bg-light rounded-3 h-100 d-flex flex-column justify-content-center">
+                    <small class="text-muted d-block fw-bold" style="font-size: 0.70rem;">KONTRAK</small>
+                    <h4 class="fw-bold text-info mb-0"><span id="pub-totK">0</span> <span class="small font-normal text-muted">KK</span></h4>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2 KOTAK GENDER (LAKI-LAKI & PEREMPUAN) -->
+              <div class="row g-2 mb-3 text-center">
+                <div class="col-6">
+                  <div class="p-2 bg-light rounded-3">
+                    <small class="text-muted d-block fw-bold" style="font-size: 0.75rem;">WARGA LAKI-LAKI</small>
+                    <h5 class="fw-bold text-primary mb-0" id="pub-totL">0 <span class="small font-normal text-muted">Jiwa</span></h5>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-2 bg-light rounded-3">
+                    <small class="text-muted d-block fw-bold" style="font-size: 0.75rem;">WARGA PEREMPUAN</small>
+                    <h5 class="fw-bold text-warning mb-0" id="pub-totP">0 <span class="small font-normal text-muted">Jiwa</span></h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tombol Aksi Cepat -->
+            <div>
+              <div class="row g-2">
+                <div class="d-flex flex-column flex-md-row gap-2 w-100">
+                  <div class="flex-fill">
+                    <a href="javascript:void(0)" onclick="openModalPeminjaman()" class="btn-action-icon h-100 w-100">
+                      <i class="fas fa-boxes text-success"></i>
+                      <div class="text-start">
+                        <div class="fw-bold" style="font-size: 0.85rem;">Pinjam Aset</div>
+                        <small class="text-muted" style="font-size: 0.65rem;">Fasilitas Warga</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="flex-fill">
+                    <a href="javascript:void(0)" onclick="openModalPengaduan()" class="btn-action-icon h-100 w-100">
+                      <i class="fas fa-bullhorn text-danger"></i>
+                      <div class="text-start">
+                        <div class="fw-bold" style="font-size: 0.85rem;">Lapor Keluhan</div>
+                        <small class="text-muted" style="font-size: 0.65rem;">Pengaduan Masalah</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="flex-fill">
+                    <a href="javascript:void(0)" onclick="openModalPermohonan()" class="btn-action-icon h-100 w-100">
+                      <i class="fas fa-file-signature text-primary"></i>
+                      <div class="text-start">
+                        <div class="fw-bold" style="font-size: 0.85rem;">Permohonan</div>
+                        <small class="text-muted" style="font-size: 0.65rem;">Surat Pengantar</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="flex-fill" id="card-menu-daftar-warga">
+                    <a href="javascript:void(0)" onclick="openModalPendaftaranCek()" class="btn-action-icon h-100 w-100">
+                      <i class="fas fa-user-plus text-success"></i>
+                      <div class="text-start">
+                        <div class="fw-bold" style="font-size: 0.85rem;">Daftar Warga</div>
+                        <small class="text-muted" style="font-size: 0.65rem;">Input Mandiri</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="flex-fill" id="card-menu-lapor-mudik">
+                    <a href="javascript:void(0)" onclick="openModalPemudikPublik()" class="btn-action-icon h-100 w-100 border-warning bg-warning bg-opacity-10">
+                      <i class="fas fa-car-side text-warning"></i>
+                      <div class="text-start">
+                        <div class="fw-bold text-dark" style="font-size: 0.85rem;">Lapor Mudik</div>
+                        <small class="text-muted" style="font-size: 0.65rem;">Pantau Rumah</small>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="text-center text-muted small mt-5 mb-4">
+        <p class="mb-0"><b>SI-GAS</b> &copy; 2026 • Hafidza Niaga Indonesia (Hak Cipta Dilindungi)</p>
+      </footer>
+
+    </div>
   </div>
+
+  <!-- JAVASCRIPT KONEKSI KE BACKEND GOOGLE APPS SCRIPT -->
+  <script>
+    // URL Backend Google Apps Script Web App Anda
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxuuSBa1DoN56D-2333qemaQqQpYgN0gcC2RxnMenDZu7u8d8Q5nVjeRqTsEuSJmjJq/exec";
+
+    function loadPublicData() {
+      // Contoh pengambilan data via Fetch API dari GitHub Pages ke Google Apps Script
+      fetch(SCRIPT_URL + "?action=getPublicData")
+        .then(response => response.json())
+        .then(res => {
+          if (res.success) {
+            // Perbarui elemen UI demografi di sini sesuai data dari res
+            console.log("Data publik berhasil dimuat:", res.data);
+          }
+        })
+        .catch(err => console.error("Gagal memuat data:", err));
+    }
+
+    function triggerAdminLogin() {
+      alert("Fitur Panel Pengurus / Login Admin");
+    }
+
+    function openModalPeminjaman() { Swal.fire('Info', 'Form Pinjam Aset', 'info'); }
+    function openModalPengaduan() { Swal.fire('Info', 'Form Lapor Keluhan', 'info'); }
+    function openModalPermohonan() { Swal.fire('Info', 'Form Permohonan Surat', 'info'); }
+    function openModalPendaftaranCek() { Swal.fire('Info', 'Form Pendaftaran Mandiri Warga', 'info'); }
+    function openModalPemudikPublik() { Swal.fire('Info', 'Form Pelaporan Mudik', 'info'); }
+
+    // Muat data saat halaman dibuka
+    window.onload = function() {
+      loadPublicData();
+    };
+  </script>
 </body>
 </html>
